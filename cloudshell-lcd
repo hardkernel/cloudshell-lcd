@@ -46,76 +46,73 @@ get_hostname() {
 }
 
 get_internal_ip() {
-	export INTERNAL_IP=`ifconfig $NETIF | grep 'inet addr:'| cut -d: -f2 | awk '{ print $1}'`
+	export INTERNAL_IP=`hostname -I`
 }
 
 get_net_tx_rx_realtime() {
-	net_txrx=`sar -n DEV 1 1 | grep $NETIF | tail -n 1 | gawk '{print $5" "$6}'`
-	# in MB/s
-	_tx=`echo $net_txrx | awk '{printf $1}'`
-	_rx=`echo $net_txrx | awk '{printf $2}'`
-	export NET_TX=`echo "scale=1; x=$_tx/1024; if(x<1) print 0; x" | bc`
-	export NET_RX=`echo "scale=1; x=$_rx/1024; if(x<1) print 0; x" | bc`
-	
+	local net_txrx=(`sar -n DEV 1 1 | awk '$2 == "'$NETIF'" {printf "%.1f %.1f", $5/1024, $6/1024; exit;}'`)
+	export NET_TX=${net_txrx[0]}
+	export NET_RX=${net_txrx[1]}
 }
 
 get_disk_mount_info() {
-	IFS=$'\n' SATA=(`mount | grep "/dev/sd" | awk '{ print $1 }'`)
-	export mountedNum=`mount | grep "/dev/sd" | awk '{ print $1 }' | wc -l`
-	if [ $mountedNum -ge 2 ]
-	then
-		mountedNum=2
-	fi
+	SATA=(`awk '/^\/dev\/sd/ {printf "%s ", $1}' /proc/mounts`)
 }
 
 get_disk_info() {
-	for (( i=0; i<=$mountedNum-1; i++))
+	local t=`df -h`
+	local iostat=`iostat -y -m 1 1`
+
+	for i in "${!SATA[@]}"
 	do
-		t=`df -h | grep ${SATA[$i]}`
-		export DISK_SIZE$i=`echo $t | awk '{printf $2}'`
-		export DISK_USED$i=`echo $t | awk '{printf $3}'`
-		export DISK_FREE$i=`echo $t | awk '{printf $4}'`
-		export DISK_USED_PCT$i=`echo $t | awk '{printf $5}'`
-		SAT=`expr "${SATA[$i]#"/dev/"}" : '\([a-z]*\)'`
-		
-		export DISK_R$i=`iostat -m 1 2 | grep $SAT | awk 'FNR == 2 {print $3}'`
-		export DISK_W$i=`iostat -m 1 2 | grep $SAT | awk 'FNR == 2 {print $4}'`
+		# escape / --> \/
+		escaped_regex="${SATA[$i]//\//\\/}"
+		DISK_SIZE[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $2}'`
+		DISK_USED[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $3}'`
+		DISK_FREE[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $4}'`
+		DISK_USED_PCT[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $5}'`
+
+		local SAT=`expr "${SATA[$i]#"/dev/"}" : '\([a-z]*\)'`
+		DISK_R[$i]=`echo "$iostat" | awk '/^'"$SAT"'/ {print $3}'`
+		DISK_W[$i]=`echo "$iostat" | awk '/^'"$SAT"'/ {print $4}'`
 	done
 }
 
 get_disk_temperature() {
-	for (( i=0; i<=$mountedNum-1; i++))
+	for i in "${!SATA[@]}"
 	do
+		# declare and assign variable seperately to avoid masking return value
+		local t
 		t=`smartctl -a ${SATA[$i]} -d sat | grep Temp`
 		if [ $? == 0 ]
 		then
-			TEMP=`echo $t | awk '{printf $10}'`
-			export DISK_TEMP$i=" Temp: $TEMP$TEMPERATURE_FORMAT"
+			local temp=`echo $t | awk '{print $10}'`
+			DISK_TEMP[$i]=" Temp: $temp$TEMPERATURE_FORMAT"
 		else
-			export DISK_TEMP$i=""
+			DISK_TEMP[$i]=""
 		fi
 	done
 }
 
 get_memory_info() {
 	# in Mbytes
-	export MEM_FREE=$[`cat /proc/meminfo | grep MemFree | awk '{print $2'}` / 1024]
-	export MEM_TOTAL=$[`cat /proc/meminfo | grep MemTotal | awk '{print $2'}` / 1024]
+	# MemAvailable would be a better metric here imo
+	export MEM_FREE=`awk '/MemFree/ {print $2/1024}' /proc/meminfo`
+	export MEM_TOTAL=`awk '/MemTotal/ {print $2/1024}' /proc/meminfo`
 	export MEM_USED=$[$MEM_TOTAL - $MEM_FREE]
 }
 
 get_system_info() {
-	export UBUNTU_VERSION=`lsb_release -r | awk '{print $2'}`
+	export UBUNTU_VERSION=`lsb_release -r | awk '{print $2}'`
 	export KERNEL_VERSION=`uname -r | awk '{print substr($1,0,6)}'`
 }
 
 get_cpu_usage() { 
-	cpufree=`mpstat 1 1 | tail -n 1 | awk '{printf $12}'`
-	export CPU_USAGE=`echo "scale=1; x=100-$cpufree; if(x<1) print 0; x" | bc`
+	export CPU_USAGE=`mpstat 1 1 | awk '/Average/ {printf "%.1f", 100-$12}'`
 }
 
 get_cpu_temperature() {
-	_t=$[`cat /sys/class/thermal/thermal_zone0/temp` / 1000]
+	_t=$[`</sys/class/thermal/thermal_zone0/temp` / 1000]
 	if [ "$TEMPERATURE_FORMAT" = "C" ]; then
 		export CPU_TEMP="$_t"C
 	else
@@ -182,8 +179,8 @@ while true; do
 	get_cpu_temperature
 	#get_samba_connections
 	#get_nfs_connections
-    	get_process_count
-    	
+	get_process_count
+
 	# clear the screen every loop
 	# we only wipe the screen when we are ready to write data to it
 	clear > $oc
@@ -191,12 +188,12 @@ while true; do
 	# format the data on screen
 	#echo "" > $oc
 	echo -e "$CBLUE$HOSTNAME $COFF: $DATE" > $oc
-    #echo "" > $oc
+	#echo "" > $oc
 	echo -e "Ubuntu $CGREEN$UBUNTU_VERSION$COFF       Kernel $CGREEN$KERNEL_VERSION$COFF" > $oc
 	# line CPU Usage
 	echo -e "CPU Usage: $CBLUE$CPU_USAGE%$COFF  CPU Temp: $CRED$CPU_TEMP$COFF" > $oc
-    # Line Memory
-    #echo -e "Memory Free: $CBLUE$MEM_FREE MB$COFF   Used: $CBLUE$MEM_USED MB$COFF" > $oc
+	# Line Memory
+	#echo -e "Memory Free: $CBLUE$MEM_FREE MB$COFF   Used: $CBLUE$MEM_USED MB$COFF" > $oc
 	# Line IP Addresses
 	#echo -e "IP: $CBLUE$INTERNAL_IP$COFF Ext IP: $CBLUE$EXTERNAL_IP$COFF" > $oc
 	echo -e "IP: $CBLUE$INTERNAL_IP$COFF" > $oc
@@ -205,24 +202,18 @@ while true; do
 	# Line Disk Space
 
 	
-	for (( i=0; i<=$mountedNum-1; i++))
+	for i in "${!SATA[@]}"
 	do
-		eval DISK_TEMP=\$$"DISK_TEMP$i"
-		eval DISK_USED=\$$"DISK_USED$i"
-		eval DISK_USED_PCT=\$$"DISK_USED_PCT$i"
-		eval DISK_FREE=\$$"DISK_FREE$i"
-		eval DISK_R=\$$"DISK_R$i"
-		eval DISK_W=\$$"DISK_W$i"
 		echo "" > $oc
-		echo -e "${SATA[$i]} $CRED$DISK_TEMP$COFF" > $oc
-		echo -e "R/W $CBLUE$DISK_R$COFF / $CBLUE$DISK_W$COFF MB/s" > $oc
-		echo -e "Disk Used: $CBLUE$DISK_USED$COFF ($CBLUE$DISK_USED_PCT$COFF)  Free: $CBLUE$DISK_FREE$COFF" > $oc
+		echo -e "${SATA[$i]} $CRED${DISK_TEMP[$i]}$COFF" > $oc
+		echo -e "R/W $CBLUE${DISK_R[$i]}$COFF / $CBLUE${DISK_W[$i]}$COFF MB/s" > $oc
+		echo -e "Disk Used: $CBLUE${DISK_USED[$i]}$COFF ($CBLUE${DISK_USED_PCT[$i]}$COFF)  Free: $CBLUE${DISK_FREE[$i]}$COFF" > $oc
 	done
 
-    # Line Samba
-    #echo -e "Samba Clients: $CBLUE$SAMBA_CONNECTIONS$COFF" > $oc
-    # line NFS
-    #echo -e "NFS Connections: $CBLUE$NFS_CONNECTIONS$COFF" > $oc
+	# Line Samba
+	#echo -e "Samba Clients: $CBLUE$SAMBA_CONNECTIONS$COFF" > $oc
+	# line NFS
+	#echo -e "NFS Connections: $CBLUE$NFS_CONNECTIONS$COFF" > $oc
 	# line Processes
 
 	# sleep
