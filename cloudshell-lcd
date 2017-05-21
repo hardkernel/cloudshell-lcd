@@ -34,47 +34,47 @@ export TEMPERATURE_FORMAT="C"
 export EXT_IP_REFRESH="10"
 
 get_external_ip() {
-	export EXTERNAL_IP=`/usr/bin/curl -s http://mdrjr.net/ip.php`
+	export EXTERNAL_IP=$(/usr/bin/curl -s http://mdrjr.net/ip.php)
 }
 
 get_full_date() {
-	export DATE=`date +"%Y-%m-%d %H:%M:%S"`
+	export DATE=$(date +"%Y-%m-%d %H:%M:%S")
 }
 
 get_hostname() {
-	export HOSTNAME=`hostname`
+	export HOSTNAME=$(hostname)
 }
 
 get_internal_ip() {
-	export INTERNAL_IP=`hostname -I`
+	export INTERNAL_IP=$(hostname -I)
 }
 
 get_net_tx_rx_realtime() {
-	local net_txrx=(`sar -n DEV 1 1 | awk '$2 == "'$NETIF'" {printf "%.1f %.1f", $5/1024, $6/1024; exit;}'`)
+	local net_txrx=($(sar -n DEV 1 1 | awk '$2 == "'$NETIF'" {printf "%.1f %.1f", $5/1024, $6/1024; exit;}'))
 	export NET_TX=${net_txrx[0]}
 	export NET_RX=${net_txrx[1]}
 }
 
 get_disk_mount_info() {
-	SATA=(`awk '/^\/dev\/sd/ {printf "%s ", $1}' /proc/mounts`)
+	SATA=($(awk '/^\/dev\/sd/ {printf "%s ", $1}' /proc/mounts))
 }
 
 get_disk_info() {
-	local t=`df -h`
-	local iostat=`iostat -y -m 1 1`
+	local t=$(df -h)
+	local iostat=$(iostat -y -m 1 1)
 
 	for i in "${!SATA[@]}"
 	do
 		# escape / --> \/
 		escaped_regex="${SATA[$i]//\//\\/}"
-		DISK_SIZE[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $2}'`
-		DISK_USED[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $3}'`
-		DISK_FREE[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $4}'`
-		DISK_USED_PCT[$i]=`echo "$t" | awk '/^'"$escaped_regex"'/ {print $5}'`
+		#DISK_SIZE[$i]=$(echo "$t" | awk '/^'"$escaped_regex"'/ {print $2}')
+		DISK_USED[$i]=$(echo "$t" | awk '/^'"$escaped_regex"'/ {print $3}')
+		DISK_FREE[$i]=$(echo "$t" | awk '/^'"$escaped_regex"'/ {print $4}')
+		DISK_USED_PCT[$i]=$(echo "$t" | awk '/^'"$escaped_regex"'/ {print $5}')
 
-		local SAT=`expr "${SATA[$i]#"/dev/"}" : '\([a-z]*\)'`
-		DISK_R[$i]=`echo "$iostat" | awk '/^'"$SAT"'/ {print $3}'`
-		DISK_W[$i]=`echo "$iostat" | awk '/^'"$SAT"'/ {print $4}'`
+		local SAT=$(expr "${SATA[$i]#"/dev/"}" : '\([a-z]*\)')
+		DISK_R[$i]=$(echo "$iostat" | awk '/^'"$SAT"'/ {print $3}')
+		DISK_W[$i]=$(echo "$iostat" | awk '/^'"$SAT"'/ {print $4}')
 	done
 }
 
@@ -83,10 +83,10 @@ get_disk_temperature() {
 	do
 		# declare and assign variable seperately to avoid masking return value
 		local t
-		t=`smartctl -a ${SATA[$i]} -d sat | grep Temp`
-		if [ $? == 0 ]
+		t=$(smartctl -a "${SATA[$i]}" -d sat | grep "Temp")
+		if (( $? == 0 ))
 		then
-			local temp=`echo $t | awk '{print $10}'`
+			local temp=$(echo $t | awk '{print $10}')
 			DISK_TEMP[$i]=" Temp: $temp$TEMPERATURE_FORMAT"
 		else
 			DISK_TEMP[$i]=""
@@ -97,26 +97,26 @@ get_disk_temperature() {
 get_memory_info() {
 	# in Mbytes
 	# MemAvailable would be a better metric here imo
-	export MEM_FREE=`awk '/MemFree/ {print $2/1024}' /proc/meminfo`
-	export MEM_TOTAL=`awk '/MemTotal/ {print $2/1024}' /proc/meminfo`
-	export MEM_USED=$[$MEM_TOTAL - $MEM_FREE]
+	export MEM_FREE=$(awk '/MemFree/ {print $2/1024}' /proc/meminfo)
+	export MEM_TOTAL=$(awk '/MemTotal/ {print $2/1024}' /proc/meminfo)
+	export MEM_USED=$((MEM_TOTAL - MEM_FREE))
 }
 
 get_system_info() {
-	export UBUNTU_VERSION=`lsb_release -r | awk '{print $2}'`
-	export KERNEL_VERSION=`uname -r | awk '{print substr($1,0,6)}'`
+	export UBUNTU_VERSION=$(lsb_release -r | awk '{print $2}')
+	export KERNEL_VERSION=$(uname -r | awk '{print substr($1,0,6)}')
 }
 
 get_cpu_usage() { 
-	export CPU_USAGE=`mpstat 1 1 | awk '/Average/ {printf "%.1f", 100-$12}'`
+	export CPU_USAGE=$(mpstat 1 1 | awk '/Average/ {printf "%.1f", 100-$12}')
 }
 
 get_cpu_temperature() {
-	_t=$[`</sys/class/thermal/thermal_zone0/temp` / 1000]
+	_t=$(($(</sys/class/thermal/thermal_zone0/temp) / 1000))
 	if [ "$TEMPERATURE_FORMAT" = "C" ]; then
 		export CPU_TEMP="$_t"C
 	else
-		_t1=$[ $_t * 9 / 5 + 32 ]
+		_t1=$((_t * 9 / 5 + 32))
 		export CPU_TEMP="$_t1"F
 	fi
 }
@@ -125,16 +125,16 @@ get_samba_connections() {
 	if [ ! -f /usr/bin/smbstatus ]; then
 		export SAMBA_CONNECTIONS=0
 	else
-		export SAMBA_CONNECTIONS=`smbstatus -b | grep -c ipv`
+		export SAMBA_CONNECTIONS=$(smbstatus -b | grep -c ipv)
 	fi
 }
 
 get_nfs_connections() { 
-	export NFS_CONNECTIONS=`netstat -an | grep 2049 | grep -c ESTA`
+	export NFS_CONNECTIONS=$(netstat -an | grep 2049 | grep -c ESTA)
 }
 
 get_process_count() { 
-	export PROCESS_COUNT=`ps xa | wc -l`
+	export PROCESS_COUNT=$(ps xa | wc -l)
 }
 
 # local variables
@@ -158,12 +158,12 @@ while true; do
 	chvt $OUTPUT_CONSOLE
 
 	# check if EXT_IP_REFRESH
-	if (( ($ext_ip_refresh_c % $EXT_IP_REFRESH) == 0 )); then
+	if (( (ext_ip_refresh_c % EXT_IP_REFRESH) == 0 )); then
 		get_external_ip
 	fi
 	
 	# increment $ext_ip_refresh_c
-	ext_ip_refresh_c=$[$ext_ip_refresh_c+1]
+	ext_ip_refresh_c=$((ext_ip_refresh_c+1))
 
 	# get data
 	get_internal_ip
