@@ -96,10 +96,9 @@ get_disk_temperature() {
 
 get_memory_info() {
 	# in Mbytes
-	# MemAvailable would be a better metric here imo
-	export MEM_FREE=$(awk '/MemFree/ {print $2/1024}' /proc/meminfo)
-	export MEM_TOTAL=$(awk '/MemTotal/ {print $2/1024}' /proc/meminfo)
-	export MEM_USED=$((MEM_TOTAL - MEM_FREE))
+	export MEM_AVAILABLE=$(awk '/^MemAvailable:/ {printf "%d", $2/1024}' /proc/meminfo)
+	export MEM_TOTAL=$(awk '/^MemTotal:/ {printf "%d", $2/1024}' /proc/meminfo)
+	export MEM_USED=$((MEM_TOTAL - MEM_AVAILABLE))
 }
 
 get_system_info() {
@@ -193,7 +192,7 @@ while true; do
 	# line CPU Usage
 	echo -e "CPU Usage: $CBLUE$CPU_USAGE%$COFF  CPU Temp: $CRED$CPU_TEMP$COFF" > $oc
 	# Line Memory
-	#echo -e "Memory Free: $CBLUE$MEM_FREE MB$COFF   Used: $CBLUE$MEM_USED MB$COFF" > $oc
+	#echo -e "Memory Free: $CBLUE$MEM_AVAILABLE MB$COFF   Used: $CBLUE$MEM_USED MB$COFF" > $oc
 	# Line IP Addresses
 	#echo -e "IP: $CBLUE$INTERNAL_IP$COFF Ext IP: $CBLUE$EXTERNAL_IP$COFF" > $oc
 	echo -e "IP: $CBLUE$INTERNAL_IP$COFF" > $oc
