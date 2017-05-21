@@ -157,12 +157,12 @@ while true; do
 	chvt $OUTPUT_CONSOLE
 
 	# check if EXT_IP_REFRESH
-	if (( (ext_ip_refresh_c % EXT_IP_REFRESH) == 0 )); then
-		get_external_ip
-	fi
+	#if (( (ext_ip_refresh_c % EXT_IP_REFRESH) == 0 )); then
+	#	get_external_ip
+	#fi
 	
 	# increment $ext_ip_refresh_c
-	ext_ip_refresh_c=$((ext_ip_refresh_c+1))
+	#ext_ip_refresh_c=$((ext_ip_refresh_c+1))
 
 	# get data
 	get_internal_ip
@@ -178,7 +178,7 @@ while true; do
 	get_cpu_temperature
 	#get_samba_connections
 	#get_nfs_connections
-	get_process_count
+	#get_process_count
 
 	# clear the screen every loop
 	# we only wipe the screen when we are ready to write data to it
