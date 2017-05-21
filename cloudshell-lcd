@@ -46,7 +46,7 @@ get_hostname() {
 }
 
 get_internal_ip() {
-	export INTERNAL_IP=$(hostname -I)
+	export INTERNAL_IP=$(hostname -I | cut -d ' ' -f 1)
 }
 
 get_net_tx_rx_realtime() {
