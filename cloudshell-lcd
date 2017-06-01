@@ -103,7 +103,7 @@ get_memory_info() {
 
 get_system_info() {
 	export UBUNTU_VERSION=$(lsb_release -r | awk '{print $2}')
-	export KERNEL_VERSION=$(uname -r | awk '{print substr($1,0,6)}')
+	export KERNEL_VERSION=$(uname -r | awk '{print substr($1,0,7)}')
 }
 
 get_cpu_usage() { 
@@ -188,7 +188,7 @@ while true; do
 	#echo "" > $oc
 	echo -e "$CBLUE$HOSTNAME $COFF: $DATE" > $oc
 	#echo "" > $oc
-	echo -e "Ubuntu $CGREEN$UBUNTU_VERSION$COFF       Kernel $CGREEN$KERNEL_VERSION$COFF" > $oc
+	echo -e "Ubuntu $CGREEN$UBUNTU_VERSION$COFF     Kernel $CGREEN$KERNEL_VERSION$COFF" > $oc
 	# line CPU Usage
 	echo -e "CPU Usage: $CBLUE$CPU_USAGE%$COFF  CPU Temp: $CRED$CPU_TEMP$COFF" > $oc
 	# Line Memory
