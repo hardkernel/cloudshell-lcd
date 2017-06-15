@@ -82,14 +82,19 @@ get_disk_temperature() {
 	for i in "${!SATA[@]}"
 	do
 		# declare and assign variable seperately to avoid masking return value
-		local t
-		t=$(smartctl -a "${SATA[$i]}" -d sat | grep "Temp")
-		if (( $? == 0 ))
+		DISK_TEMP[$i]=" (IDLE)"
+		if (( ${DISK_R[$i]%.*} > 0 )) || (( ${DISK_W[$i]%.*} > 0 ))
 		then
-			local temp=$(echo $t | awk '{print $10}')
-			DISK_TEMP[$i]=" Temp: $temp$TEMPERATURE_FORMAT"
-		else
-			DISK_TEMP[$i]=""
+
+			local t
+			t=$(smartctl -a "${SATA[$i]}" -d sat | grep "Temp")
+			if (( $? == 0 ))
+			then
+				local temp=$(echo $t | awk '{print $10}')
+				DISK_TEMP[$i]="${CRED} Temp: $temp$TEMPERATURE_FORMAT"
+			else
+				DISK_TEMP[$i]=""
+			fi
 		fi
 	done
 }
@@ -204,7 +209,7 @@ while true; do
 	for i in "${!SATA[@]}"
 	do
 		echo "" > $oc
-		echo -e "${SATA[$i]} $CRED${DISK_TEMP[$i]}$COFF" > $oc
+		echo -e "${SATA[$i]} ${DISK_TEMP[$i]}$COFF" > $oc
 		echo -e "R/W $CBLUE${DISK_R[$i]}$COFF / $CBLUE${DISK_W[$i]}$COFF MB/s" > $oc
 		echo -e "Disk Used: $CBLUE${DISK_USED[$i]}$COFF ($CBLUE${DISK_USED_PCT[$i]}$COFF)  Free: $CBLUE${DISK_FREE[$i]}$COFF" > $oc
 	done
