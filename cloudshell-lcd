@@ -33,6 +33,10 @@ export TEMPERATURE_FORMAT="C"
 # seconds_to_refresh = EXT_IP_REFRESH * REFRESH
 export EXT_IP_REFRESH="10"
 
+# assign the script to cpu0
+PID=$$
+taskset -cp 1 $PID
+
 get_external_ip() {
 	export EXTERNAL_IP=$(/usr/bin/curl -s http://mdrjr.net/ip.php)
 }
