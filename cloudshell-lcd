@@ -45,8 +45,16 @@ get_hostname() {
 	export HOSTNAME=$(hostname)
 }
 
+get_os_distributor() {
+	export OS_DISTRIBUTOR=$(lsb_release -i | awk '{ print $3 }')
+}
+
 get_internal_ip() {
 	export INTERNAL_IP=$(hostname -I | cut -d ' ' -f 1)
+}
+
+get_ethernet_speed() {
+	export SPEED_ETH0=$(cat /sys/class/net/eth*/speed)
 }
 
 get_net_tx_rx_realtime() {
@@ -115,6 +123,13 @@ get_cpu_usage() {
 	export CPU_USAGE=$(mpstat 1 1 | awk '/Average/ {printf "%.1f", 100-$12}')
 }
 
+get_cpu_clock() {
+	speed_a7=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq)
+	speed_a15=$(cat /sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq)
+	export SPEED_CPU_A7="$((speed_a7/1000))"
+	export SPEED_CPU_A15="$((speed_a15/1000))"
+}
+
 get_cpu_temperature() {
 	_t=$(($(</sys/class/thermal/thermal_zone0/temp) / 1000))
 	if [ "$TEMPERATURE_FORMAT" = "C" ]; then
@@ -171,7 +186,9 @@ while true; do
 
 	# get data
 	get_internal_ip
+	get_ethernet_speed
 	get_hostname
+	get_os_distributor
 	get_disk_mount_info
 	get_disk_info
 	get_disk_temperature
@@ -179,6 +196,7 @@ while true; do
 	#get_net_tx_rx_realtime
 	#get_memory_info
 	get_system_info
+	get_cpu_clock
 	get_cpu_usage
 	get_cpu_temperature
 	#get_samba_connections
@@ -190,17 +208,16 @@ while true; do
 	clear > $oc
 
 	# format the data on screen
-	#echo "" > $oc
 	echo -e "$CBLUE$HOSTNAME $COFF: $DATE" > $oc
-	#echo "" > $oc
-	echo -e "Ubuntu $CGREEN$UBUNTU_VERSION$COFF     Kernel $CGREEN$KERNEL_VERSION$COFF" > $oc
+	echo -e "$OS_DISTRIBUTOR $CGREEN$UBUNTU_VERSION$COFF       Kernel $CGREEN$KERNEL_VERSION$COFF" > $oc
 	# line CPU Usage
 	echo -e "CPU Usage: $CBLUE$CPU_USAGE%$COFF  CPU Temp: $CRED$CPU_TEMP$COFF" > $oc
+	echo -e "A15 : $CBLUE$SPEED_CPU_A15 MHz$COFF   A7 : $CBLUE$SPEED_CPU_A7 MHz$COFF" > $oc
 	# Line Memory
 	#echo -e "Memory Free: $CBLUE$MEM_AVAILABLE MB$COFF   Used: $CBLUE$MEM_USED MB$COFF" > $oc
 	# Line IP Addresses
 	#echo -e "IP: $CBLUE$INTERNAL_IP$COFF Ext IP: $CBLUE$EXTERNAL_IP$COFF" > $oc
-	echo -e "IP: $CBLUE$INTERNAL_IP$COFF" > $oc
+	echo -e "IP: $CBLUE$INTERNAL_IP$COFF @ $CBLUE$SPEED_ETH0 Mbps$COFF" > $oc
 	# Line network usage
 	#echo -e "TX: $CBLUE$NET_TX MB/s$COFF RX: $CBLUE$NET_RX MB/s$COFF" > $oc
 	# Line Disk Space
@@ -211,7 +228,7 @@ while true; do
 		echo "" > $oc
 		echo -e "${SATA[$i]} ${DISK_TEMP[$i]}$COFF" > $oc
 		echo -e "R/W $CBLUE${DISK_R[$i]}$COFF / $CBLUE${DISK_W[$i]}$COFF MB/s" > $oc
-		echo -e "Disk Used: $CBLUE${DISK_USED[$i]}$COFF ($CBLUE${DISK_USED_PCT[$i]}$COFF)  Free: $CBLUE${DISK_FREE[$i]}$COFF" > $oc
+		echo -ne "Disk Used: $CBLUE${DISK_USED[$i]}$COFF ($CBLUE${DISK_USED_PCT[$i]}$COFF)  Free: $CBLUE${DISK_FREE[$i]}$COFF" > $oc
 	done
 
 	# Line Samba
