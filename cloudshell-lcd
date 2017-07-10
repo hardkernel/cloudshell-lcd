@@ -120,7 +120,7 @@ get_memory_info() {
 
 get_system_info() {
 	export UBUNTU_VERSION=$(lsb_release -r | awk '{print $2}')
-	export KERNEL_VERSION=$(uname -r | awk '{print substr($1,0,7)}')
+	export KERNEL_VERSION=$(uname -r | awk -F "-" '{print $1}')
 }
 
 get_cpu_usage() { 
