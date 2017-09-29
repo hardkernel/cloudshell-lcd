@@ -68,7 +68,7 @@ get_net_tx_rx_realtime() {
 }
 
 get_disk_mount_info() {
-	SATA=($(awk '/^\/dev\/sd/ {printf "%s ", $1}' /proc/mounts))
+	SATA=($(sort -k 1 -t " " /proc/mounts | awk '(/^\/dev\/sd/) && (!a[$1]++) { printf "%s ", $1 }'))
 }
 
 get_disk_info() {
