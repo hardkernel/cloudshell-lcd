@@ -58,7 +58,11 @@ get_internal_ip() {
 }
 
 get_ethernet_speed() {
-	export SPEED_ETH0=$(cat /sys/class/net/eth*/speed)
+	if [[ $(ls /sys/class/net -I lo) == *"eth"* ]]; then
+		export SPEED_ETH0=$(cat /sys/class/net/eth*/speed)
+	else
+		export SPEED_ETH0=$(cat /sys/class/net/"$(ls /sys/class/net -I lo)"/speed)
+	fi
 }
 
 get_net_tx_rx_realtime() {
