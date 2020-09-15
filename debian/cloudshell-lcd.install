@@ -1,0 +1,2 @@
+bin/cloudshell-lcd /bin/
+lib/systemd/system/cloudshell-lcd.service /lib/systemd/system/

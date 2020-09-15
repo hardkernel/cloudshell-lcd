@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+# enable the service for the next boot
+systemctl enable cloudshell-lcd.service
