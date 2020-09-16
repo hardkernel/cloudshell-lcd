@@ -1,7 +1,7 @@
 Source: cloudshell-lcd
 Priority: extra
 Section: misc
-Maintainer: Kyle Lee <cont2dev@gmail.com>
+Maintainer: Deokgyu Yang <secugyu@gmail.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.3
 
