@@ -1,3 +1,10 @@
+cloudshell-lcd (1.2) stable; urgency=medium
+
+  * Prevent from displaying duplicate disks.
+  * Fix showing ethernet speed if eth0 does not exist but en* does
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Wed, 16 Sep 2020 18:24:17 +0900
+
 cloudshell-lcd (1.1-0~7~ubuntu20.04.1) focal; urgency=low
 
   * Auto build.
