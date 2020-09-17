@@ -1,6 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
-# enable the service for the next boot
-systemctl enable cloudshell-lcd.service
+case "$1" in
+    configure)
+        if [ $(uname -r | cut -c1-1) -lt 5 ]; then
+            # Install a configuration to enable the LCD when the kernel version is below 5
+            cp -f /tmp/cloudshell-lcd/odroid-cloudshell.conf /etc/modprobe.d/
+        fi
+
+        # enable the service for the next boot
+        systemctl enable cloudshell-lcd.service
+        rm -rf /tmp/cloudshell-lcd
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

@@ -1,3 +1,16 @@
 #!/bin/sh
 
-systemctl stop cloudshell-lcd.service
+case "$1" in
+    purge)
+        rm -f /etc/modprobe.d/odroid-cloudshell.conf
+        systemctl stop cloudshell-lcd.service
+    ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
