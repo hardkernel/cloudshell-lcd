@@ -3,7 +3,8 @@
 case "$1" in
     purge)
         rm -f /etc/modprobe.d/odroid-cloudshell.conf
-        systemctl stop cloudshell-lcd.service
+        systemctl disable cloudshell-lcd.service
+        systemctl daemon-reload
     ;;
 
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)

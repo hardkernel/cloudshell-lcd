@@ -11,6 +11,8 @@ case "$1" in
 
         # enable the service for the next boot
         systemctl enable cloudshell-lcd.service
+        systemctl start cloudshell-lcd.service
+
         rm -rf /tmp/cloudshell-lcd
     ;;
 
