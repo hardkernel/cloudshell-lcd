@@ -1,3 +1,10 @@
+cloudshell-lcd (1.3) stable; urgency=medium
+
+  * Add procedure to install a config when the kernel lower than 5
+  * Update its build dependency
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Thu, 17 Sep 2020 14:07:00 +0900
+
 cloudshell-lcd (1.2) stable; urgency=medium
 
   * Prevent from displaying duplicate disks.
