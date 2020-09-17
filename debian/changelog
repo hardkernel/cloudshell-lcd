@@ -1,3 +1,10 @@
+cloudshell-lcd (1.5) stable; urgency=medium
+
+  * Minor addition to postrm
+  * Add missing additional jobs to enable LCD automatically
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Thu, 17 Sep 2020 16:29:53 +0900
+
 cloudshell-lcd (1.4) stable; urgency=medium
 
   * Explicit contol the LCD service 
