@@ -1,0 +1,3 @@
+bin/cloudshell-lcd /bin/
+lib/systemd/system/cloudshell-lcd.service /lib/systemd/system/
+etc/modprobe.d/odroid-cloudshell.conf tmp/cloudshell-lcd/

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    purge)
+        systemctl disable cloudshell-lcd.service
+        systemctl daemon-reload
+
+        if [ $(uname -r | cut -c1-1) -lt 5 ]; then
+            # Uninstall the configuration to enable the LCD when the kernel version is below 5
+            rm -f /etc/modprobe.d/odroid-cloudshell.conf
+
+            DRVNAMES="spi-s3c64xx spidev fbtft_device"
+            for i in ${DRVNAMES}; do
+                sed -i "/$i/d" /etc/modules
+            done
+
+            sed -i 's/^#blacklist spidev/blacklist spidev/' /etc/modprobe.d/blacklist-odroid.conf
+            sed -i 's/^#blacklist spi_s3c64xx/blacklist spi_s3c64xx/' /etc/modprobe.d/blacklist-odroid.conf
+        fi
+    ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac

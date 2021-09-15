@@ -1,0 +1,74 @@
+cloudshell-lcd (1.5) stable; urgency=medium
+
+  * Minor addition to postrm
+  * Add missing additional jobs to enable LCD automatically
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Thu, 17 Sep 2020 16:29:53 +0900
+
+cloudshell-lcd (1.4) stable; urgency=medium
+
+  * Explicit contol the LCD service 
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Thu, 17 Sep 2020 14:33:38 +0900
+
+cloudshell-lcd (1.3) stable; urgency=medium
+
+  * Add procedure to install a config when the kernel lower than 5
+  * Update its build dependency
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Thu, 17 Sep 2020 14:07:00 +0900
+
+cloudshell-lcd (1.2) stable; urgency=medium
+
+  * Prevent from displaying duplicate disks.
+  * Fix showing ethernet speed if eth0 does not exist but en* does
+
+ -- Deokgyu Yang <secugyu@gmail.com>  Wed, 16 Sep 2020 18:24:17 +0900
+
+cloudshell-lcd (1.1-0~7~ubuntu20.04.1) focal; urgency=low
+
+  * Auto build.
+
+ -- KYLE LEE <kyle.seungchul@gmail.com>  Wed, 24 Jun 2020 03:03:34 +0000
+
+cloudshell-lcd (1.1-1) UNRELEASED; urgency=medium
+
+  * Disable screen blanking on tty1
+
+ -- Kyle Lee <cont2dev@gmail.com>  Tue, 23 May 2017 18:27:43 +0900
+
+cloudshell-lcd (1.1-0) UNRELEASED; urgency=medium
+
+  * Assign the script to cpu0
+  * Add displaying eth0 speed and cpu clock
+  * Get average cpu temperature of all thermal zones
+
+ -- Kyle Lee <cont2dev@gmail.com>  Mon, 22 May 2017 10:33:20 +0900
+
+cloudshell-lcd (1.0-3) UNRELEASED; urgency=medium
+
+  * Add to get os distributor
+
+ -- Kyle Lee <cont2dev@gmail.com>  Fri, 12 May 2017 05:05:51 +0900
+
+cloudshell-lcd (1.0-2) UNRELEASED; urgency=medium
+
+  * Fix postrm
+
+ -- Kyle Lee <cont2dev@gmail.com>  Sun, 28 April 2017 01:42:47 +0900
+
+cloudshell-lcd (1.0-2) UNRELEASED; urgency=medium
+
+  * Fix postrm
+
+ -- Kyle Lee <cont2dev@gmail.com>  Mon, 24 April 2017 11:03:14 +0900
+
+cloudshell-lcd (1.0-1) UNRELEASED; urgency=low
+
+  [ Kyle Lee ]
+  * Initial release. (Closes: #XXXXXX)
+
+  [ Kyle Lee ]
+  * Add initial package files
+
+ -- Kyle Lee <cont2dev@gmail.com>  Fri, 21 April 2017 12:08:45 +0900

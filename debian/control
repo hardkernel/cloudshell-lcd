@@ -1,0 +1,12 @@
+Source: cloudshell-lcd
+Priority: extra
+Section: misc
+Maintainer: Deokgyu Yang <secugyu@gmail.com>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 3.9.3
+
+Package: cloudshell-lcd
+Architecture: armhf
+Depends: ${shlibs:Depends}, ${misc:Depends}, sysstat, curl
+Description: cloudshell-lcd package
+  This package is to enable ODROID CloudShell LCD informations for server
